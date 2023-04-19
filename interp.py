@@ -12,7 +12,7 @@ def read_sexpr(f):
     for line in f:
         slist += line
     f.close()
-    return parse(slist)
+    return slist
 
 #
 # Turn a string into a list of tokens that are separated by a space
@@ -122,6 +122,82 @@ def first(args):
             raise RuntimeError("first must be applied to a non-null list: ",sexpr_to_str(arg))
     else:
         raise RuntimeError("first must have exactly one argument: ",sexpr_to_str(args))
+    
+
+#
+# Return the a list of all but the first element of a list
+# 
+# args - a list of arguments to a call to rest
+#
+
+def rest(args):
+    if (len(args) == 1):
+        arg = args[0]
+        if (isinstance(arg,list) and len(arg) > 0):
+            return arg[1:len(arg)]
+        else:
+            raise RuntimeError("rest must be applied to a non-null list: ",sexpr_to_str(arg))
+    else:
+        raise RuntimeError("rest must have exactly one argument: ",sexpr_to_str(args))
+
+
+#
+# Returns a list of elements whose first element is the first element of the argument list, 
+# and whose rest element is a list of the rest of the elements of the argument list
+#
+# args - a list of arguments to a call to cons
+#
+# This cons function is a replica of the cons function in the DrRacket Language Reference.
+
+def cons(args):
+    if (len(args) == 2):
+        first = args[0]
+        rest = args[1]
+        if (isinstance(rest,list)):
+            temp = []
+            temp.append(first)
+            return temp + rest
+        else:
+            raise RuntimeError("cons must have a list as the second argument: ",sexpr_to_str(rest))
+    else:
+        raise RuntimeError("cons must have exactly two arguments: ",sexpr_to_str(args))
+
+# Return true if the argument is a null list
+def null(args):
+    if len(args) == 1:
+        arg = args[0]
+        if isinstance(arg,list) and len(arg) == 0:
+            return atom("#t")
+        else:
+            return atom("#f")
+    else:
+        raise RuntimeError("null? must have exactly one argument: ",sexpr_to_str(args))
+
+def eq_num(args):
+    if len(args) > 0:
+        for i in range(len(args)):
+            arg = args[i]
+            if isinstance(arg, list):
+                if len(arg) == 1:
+                    args[i] = arg[0]
+                else:
+                    return atom("#f")
+        if (all(map(lambda a: isinstance(a, numbers.Number),args))):
+            res = []
+            pre_item = args[0]
+            for item in args[1:]:
+                if type(pre_item) != type(item):
+                    res.append(False)
+                else:
+                    res.append(pre_item == item)
+            return atom("#t") if all(res) else atom("#f")
+        else:
+            raise RuntimeError("= applied to non-number: ", sexpr_to_str(args))
+    else:
+        raise RuntimeError("= must have at least one argument: ",sexpr_to_str(args))
+        
+    
+
 #
 # Add a name, value pair to the base dictionary
 #
@@ -144,14 +220,18 @@ def makebase(names,vals):
     else:
         return base
 
-# you must add #f and first to the bas environment 
+# you must add #f and first to the base environment 
 
 base = {} # base environment dictionary
-basenames = ["#t","#f","first","+"] # names in base environment
-basevals = [True,False,makebuiltin(first),makebuiltin(plus)] # corresponding values
+basenames = ["#t","#f","first","+", "rest", "cons",
+             "null?", "="] # names in base environment
+basevals = [True,False,makebuiltin(first),makebuiltin(plus), makebuiltin(rest), makebuiltin(cons),
+            makebuiltin(null), makebuiltin(eq_num)] # corresponding values
+
 
 # environment containing Scheme functions
 globalenv = [makebase(basenames,basevals)] # the global environment
+
 
 #
 # Lookup an id in an environment
@@ -159,7 +239,7 @@ globalenv = [makebase(basenames,basevals)] # the global environment
 # env - a stack of dictionaries
 # id - a program id
 #
-def lookup (env,id):
+def lookup(env, id):
     if (not env):
         raise RuntimeError("undefined variable reference: ",id)
     else:
@@ -192,7 +272,9 @@ def interp(exp,env):
         elif (exp[0] == "begin"):
             return None # interpret a begin expression
         elif (exp[0] == "define"):
-            return None # interpret a define expression
+            
+
+            return None
         elif (exp[0] == "let"):
             return None # interpret a let expression
         else:
@@ -221,9 +303,11 @@ def interpret(exp):
 # argv - the name of the file
 #
 def main(argv):
-    f = open(argv[1], "r")
+    # f = open(argv[1], "r")
+
+    f = open("test.txt", "r")
     slist = read_sexpr(f)
-    interpret(slist)
+    print(interpret(slist))
  
 if __name__ == '__main__':
     main(sys.argv)
