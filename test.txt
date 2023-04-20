@@ -1,1 +1,1 @@
-(begin (define x 5) (+ 5 x))
+(begin (define (func x y x) (+ x y)) (func 10 20))

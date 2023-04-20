@@ -354,6 +354,11 @@ def interp(exp, env_id = GLOABAL_ENV_ID):
                 for arg in func_args:
                     if not isinstance(arg, str):
                         raise RuntimeError("function argument must be symbol: ", arg)
+                    elif arg in func_args[func_args.index(arg)+1:]:
+                        raise RuntimeError("function argument must be unique: ", arg)
+                    elif arg == func_name:
+                        raise RuntimeError("function argument must be different from function name: ", arg)
+
                 
 
                 func_body = exp[2]
