@@ -366,7 +366,30 @@ def interp(exp, env_id = GLOABAL_ENV_ID):
                 addToEnv(func_name, func, env_id)
 
         elif (exp[0] == "let"):
-            return None # interpret a let expression
+            # Let Expression
+            # exp example: ['let', [['x', 1], ['y', 2]], ['+', 'x', 'y']]
+            # Adding a new environment stack for the let
+            new_env = {}
+            new_env[">parent_env"] = globalenv[env_id]
+            globalenv.append(new_env)
+            new_env_id = len(globalenv) - 1
+
+            variables = exp[1]
+
+            variable_names = list(map(lambda x: x[0], variables))
+
+            # Mapping the variable
+            for variable in variables:
+                var_name = variable[0]
+                if not isinstance(var_name, str):
+                    raise RuntimeError("variable name must be symbol in let: ", var_name)
+                elif var_name in variable_names[variable_names.index(var_name)+1:]:
+                    raise RuntimeError("variable name must be unique in let: ", var_name)
+                var_value = interp(variable[1], new_env_id)
+                addToEnv(var_name, var_value, new_env_id)
+
+            # Interpret the body
+            return interp(exp[2], new_env_id)
         else:
             mfunc = interp(exp[0], env_id)
             if (isbuiltin(mfunc)):  
