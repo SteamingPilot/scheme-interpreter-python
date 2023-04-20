@@ -341,7 +341,7 @@ def interp(exp, env_id = GLOABAL_ENV_ID):
                 var_value = interp(exp[2], env_id)
                 addToEnv(var_name, var_value, env_id)
 
-            elif (isinstance(exp[1],list) and len(exp[1]) == 1):
+            elif (isinstance(exp[1],list)) and (len(exp[1]) == 1):
                 var_name = exp[1][0]
                 var_value = interp(exp[2], env_id)
                 addToEnv(var_name, var_value, env_id)
@@ -421,7 +421,10 @@ def interp(exp, env_id = GLOABAL_ENV_ID):
                 # Interpret the function body
                 return interp(func_body, new_env_id)
             else:
-                raise RuntimeError("Invalid function call: ",exp[0])
+                if len(exp) == 1:
+                    return mfunc
+                else:
+                    raise RuntimeError("Invalid function call: ",exp[0])
 
                 
     else:

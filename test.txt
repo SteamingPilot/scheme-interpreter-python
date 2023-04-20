@@ -1,1 +1,1 @@
-(let ((x 5) (y 10) (x 10)) (+ x y))
+(begin (define (do-nothing) (quote yeah)) (do-nothing 5))
